@@ -1,0 +1,42 @@
+---
+- name: My First Webserver Instalation nginx
+  hosts: web-server
+  gather_facts: false
+  become: yes # root access
+
+  tasks: 
+    - name: Install EPL Repostory
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+    
+    # install nginx 
+    - name: Install NGINX PKG
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+      
+    - name: Copy the index file 
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: /usr/share/nginx/html/index.html
+        owner: root
+        mode: '0777'
+
+    - name: Enable the nginx and start the sevice
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    # FIREWALL - ALLOW PORT 80 to acces web-page
+    - name: Allow http port 80 on FIREWALL
+      ansible.builtin.firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+        immediate: yes
+      when: ansible_facts['os_family'] == 'RedHat'
+
+
+...
